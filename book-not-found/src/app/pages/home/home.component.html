@@ -3,7 +3,7 @@
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
       <h2 class="card-title">Ask a Question</h2>
-      <app-question-form></app-question-form>
+      <app-question-form (questionAnswered)="onQuestionAnswered($event)"></app-question-form>
     </div>
   </div>
 
@@ -11,7 +11,7 @@
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
       <h2 class="card-title">AI Response</h2>
-      <app-response-window></app-response-window>
+      <app-response-window [response]="currentResponse"></app-response-window>
     </div>
   </div>
 

@@ -1,34 +1,117 @@
-<div class="container mx-auto p-4 space-y-6">
+<div class="admin-panel min-h-screen p-6 space-y-6">
+  <!-- Markdown Files List -->
   <div class="card bg-base-200">
     <div class="card-body">
-      <h2 class="card-title">Documentation Management</h2>
-      <app-markdown-editor></app-markdown-editor>
-    </div>
-  </div>
-  
-  <div class="card bg-base-200">
-    <div class="card-body">
-      <h2 class="card-title">Vector Database Management</h2>
-      <div class="overflow-x-auto">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>Topic</th>
-              <th>Last Updated</th>
-              <th>Certainty Score</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>No entries yet</td>
-              <td>--</td>
-              <td>--</td>
-              <td>--</td>
-            </tr>
-          </tbody>
-        </table>
+      <h2 class="text-xl font-bold">Markdown Files</h2>
+      <div class="flex flex-wrap gap-2 mt-4">
+        @for (file of markdownFiles; track file) {
+          <button 
+            class="btn" 
+            [class.btn-primary]="selectedFile === file"
+            (click)="onFileSelect(file)"
+          >
+            {{ file }}
+          </button>
+        }
       </div>
     </div>
+  </div>
+
+  <!-- Content and Feedback -->
+  <div class="space-y-6">
+    @if (selectedFile) {
+      <!-- Current Content -->
+      <div class="card bg-base-200">
+        <div class="card-body">
+          <h2 class="card-title">Current Content</h2>
+          <div class="prose max-w-none bg-base-100 p-4 rounded">
+            <markdown [data]="originalContent"></markdown>
+          </div>
+        </div>
+      </div>
+
+      <!-- Markdown Editor -->
+      <div class="card bg-base-200">
+        <div class="card-body">
+          <h2 class="card-title">Edit Content</h2>
+          <app-markdown-editor [content]="originalContent"></app-markdown-editor>
+        </div>
+      </div>
+      
+      <!-- AI Suggestions -->
+      <div class="space-y-4">
+        <h2 class="text-xl font-bold">AI Suggestions</h2>
+        @if (suggestions.length > 0) {
+          @for (suggestion of suggestions; track suggestion.id) {
+            <div class="card bg-base-200">
+              <div class="card-body">
+                <div class="flex justify-between items-center">
+                  <h3 class="card-title">Suggestion {{ suggestion.id }}</h3>
+                  <div class="flex gap-2">
+                    <button class="btn btn-sm btn-success" (click)="applySuggestion(suggestion)">Apply</button>
+                    <button class="btn btn-sm btn-error" (click)="rejectSuggestion(suggestion)">Reject</button>
+                  </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mt-4">
+                  <div>
+                    <h4 class="font-semibold mb-2">Original</h4>
+                    <div class="prose max-w-none bg-base-100 p-4 rounded">
+                      <pre class="whitespace-pre-wrap">{{ suggestion.original_content }}</pre>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 class="font-semibold mb-2">Suggested</h4>
+                    <div class="prose max-w-none bg-base-100 p-4 rounded">
+                      <pre class="whitespace-pre-wrap">{{ suggestion.suggested_content }}</pre>
+                    </div>
+                  </div>
+                </div>
+                <div class="text-sm text-base-content/70 mt-4">
+                  <p>Feedback Context: {{ suggestion.feedback_context }}</p>
+                  <p>Created: {{ suggestion.created_at | date:'medium' }}</p>
+                </div>
+              </div>
+            </div>
+          }
+        } @else {
+          <div class="text-base-content/70">No suggestions available</div>
+        }
+      </div>
+
+      <!-- Feedback History -->
+      <div class="space-y-4">
+        <h2 class="text-xl font-bold">Feedback History</h2>
+        @if (feedbackHistory.length > 0) {
+          @for (feedback of feedbackHistory; track feedback.id) {
+            <div class="card bg-base-200">
+              <div class="card-body">
+                <div class="flex justify-between items-center">
+                  <h3 class="card-title">Feedback {{ feedback.id }}</h3>
+                  <div class="badge" [class.badge-success]="feedback.feedback" [class.badge-error]="!feedback.feedback">
+                    {{ feedback.feedback ? 'Positive' : 'Negative' }}
+                  </div>
+                </div>
+                <p class="text-sm mt-2">Question: {{ feedback.question }}</p>
+                @if (feedback.suggested_changes) {
+                  <div class="text-sm mt-2">
+                    <p class="font-semibold">Suggested Changes:</p>
+                    <p class="whitespace-pre-wrap">{{ feedback.suggested_changes }}</p>
+                  </div>
+                }
+                <div class="text-sm text-base-content/70 mt-2">
+                  <p>Created: {{ feedback.created_at | date:'medium' }}</p>
+                </div>
+              </div>
+            </div>
+          }
+        } @else {
+          <div class="text-base-content/70">No feedback history available</div>
+        }
+      </div>
+    } @else {
+      <div class="text-center text-base-content/70">
+        <p>Select a markdown file to view content, suggestions and feedback</p>
+      </div>
+    }
   </div>
 </div>

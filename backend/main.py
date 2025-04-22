@@ -37,6 +37,14 @@ class FeedbackRequest(BaseModel):
 async def root():
     return {"message": "Welcome to BookNotFound API"}
 
+@app.get("/api/markdown/files")
+async def list_markdown_files():
+    try:
+        files = markdown_service.list_files()
+        return files
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @app.post("/api/ask")
 async def ask_question(request: QuestionRequest):
     try:
@@ -88,6 +96,14 @@ async def get_suggestions():
     try:
         suggestions = markdown_service.get_suggested_changes()
         return {"suggestions": suggestions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/feedback/history/{filename}")
+async def get_feedback_history(filename: str):
+    try:
+        history = vector_store.get_feedback_history(filename)
+        return history
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

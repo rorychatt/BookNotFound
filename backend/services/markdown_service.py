@@ -13,6 +13,15 @@ class MarkdownService:
         os.makedirs(self.storage_dir, exist_ok=True)
         os.makedirs(self.suggestions_dir, exist_ok=True)
 
+    def list_files(self) -> List[str]:
+        """List all markdown files in the storage directory."""
+        files = []
+        for filename in os.listdir(self.storage_dir):
+            if filename.endswith('.md'):
+                # Remove the .md extension
+                files.append(filename[:-3])
+        return files
+
     def get_markdown(self, filename: str) -> str:
         """Get the content of a markdown file."""
         filepath = os.path.join(self.storage_dir, f"{filename}.md")

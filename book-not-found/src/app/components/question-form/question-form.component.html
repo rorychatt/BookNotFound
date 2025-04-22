@@ -1,11 +1,45 @@
-<form class="space-y-4">
-  <div class="form-control">
-    <label class="label">
-      <span class="label-text">Your Question</span>
-    </label>
-    <textarea class="textarea textarea-bordered h-24" placeholder="Type your question here..."></textarea>
-  </div>
-  <div class="form-control">
-    <button type="submit" class="btn btn-primary">Submit Question</button>
-  </div>
-</form>
+<div class="question-form-container">
+  <form [formGroup]="questionForm" (ngSubmit)="onSubmit()" class="space-y-4">
+    <div class="form-control">
+      <label for="question" class="label">
+        <span class="label-text">Ask a question about the documentation</span>
+      </label>
+      <textarea
+        id="question"
+        formControlName="question"
+        class="textarea textarea-bordered h-24 w-full"
+        placeholder="Type your question here..."
+        [class.textarea-error]="questionForm.get('question')?.invalid && questionForm.get('question')?.touched"
+      ></textarea>
+      @if (questionForm.get('question')?.invalid && questionForm.get('question')?.touched) {
+        <div class="text-error text-sm mt-1">
+          @if (questionForm.get('question')?.errors?.['required']) {
+            <span>Question is required</span>
+          }
+          @if (questionForm.get('question')?.errors?.['minlength']) {
+            <span>Question must be at least 3 characters long</span>
+          }
+        </div>
+      }
+
+      @if (error) {
+        <div class="text-error text-sm">
+          {{ error }}
+        </div>
+      }
+
+      <button
+        type="submit"
+        class="btn btn-primary w-full"
+        [disabled]="questionForm.invalid || isLoading"
+      >
+        @if (!isLoading) {
+          <span>Ask Question</span>
+        }
+        @if (isLoading) {
+          <span class="loading loading-spinner"></span>
+        }
+      </button>
+    </div>
+  </form>
+</div>

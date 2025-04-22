@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone } from '@angular/core';
+import { Component, OnInit, NgZone, Input, OnChanges, SimpleChanges } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -16,7 +16,8 @@ declare const monaco: any;
   templateUrl: './markdown-editor.component.html',
   styleUrl: './markdown-editor.component.scss'
 })
-export class MarkdownEditorComponent implements OnInit {
+export class MarkdownEditorComponent implements OnInit, OnChanges {
+  @Input() content: string = '';
   markdownContent: string = '';
   originalContent: string = '';
   htmlContent: SafeHtml = '';
@@ -40,6 +41,25 @@ export class MarkdownEditorComponent implements OnInit {
 
     // Load initial markdown content
     this.loadMarkdownFile(this.currentFile);
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['content'] && changes['content'].currentValue) {
+      this.originalContent = changes['content'].currentValue;
+      this.markdownContent = changes['content'].currentValue;
+      this.originalTimestamp = new Date();
+      
+      if (this.diffEditor) {
+        const originalModel = monaco.editor.createModel(this.originalContent, 'markdown');
+        const modifiedModel = monaco.editor.createModel(this.markdownContent, 'markdown');
+        this.diffEditor.setModel({
+          original: originalModel,
+          modified: modifiedModel
+        });
+      }
+      
+      this.updatePreview();
+    }
   }
 
   private initMonaco() {
