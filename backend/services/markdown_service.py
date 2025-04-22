@@ -3,15 +3,47 @@ from typing import Dict, List, Any
 import markdown
 from datetime import datetime
 import json
+from .keyword_service import KeywordService
+from .llm_service import LLMService
 
 class MarkdownService:
-    def __init__(self):
+    def __init__(self, llm_service: LLMService = None):
         self.storage_dir = os.path.join(os.path.dirname(__file__), "..", "markdown_storage")
         self.suggestions_dir = os.path.join(self.storage_dir, "suggestions")
         
         # Create directories if they don't exist
         os.makedirs(self.storage_dir, exist_ok=True)
         os.makedirs(self.suggestions_dir, exist_ok=True)
+
+        # Initialize services
+        self.llm_service = llm_service or LLMService()
+        self.keyword_service = KeywordService(self.llm_service)
+
+    @classmethod
+    async def create(cls, llm_service: LLMService = None) -> 'MarkdownService':
+        """Async factory method to create and initialize MarkdownService."""
+        service = cls(llm_service)
+        await service._clear_and_init_keywords()
+        return service
+
+    async def _clear_and_init_keywords(self):
+        """Clear all existing keywords and regenerate them for all markdown files."""
+        try:
+            # Clear the keyword storage directory
+            keyword_storage = os.path.join(os.path.dirname(__file__), "..", "keyword_storage")
+            if os.path.exists(keyword_storage):
+                for file in os.listdir(keyword_storage):
+                    if file.endswith('.json'):
+                        os.remove(os.path.join(keyword_storage, file))
+
+            # Generate fresh keywords for all markdown files
+            files = self.list_files()
+            for filename in files:
+                content = self.get_markdown(filename)
+                keywords = await self.keyword_service.extract_keywords(content)
+                self.keyword_service.save_keywords(filename, keywords)
+        except Exception as e:
+            print(f"Warning: Error during keyword regeneration: {str(e)}")
 
     def list_files(self) -> List[str]:
         """List all markdown files in the storage directory."""
@@ -31,11 +63,32 @@ class MarkdownService:
         with open(filepath, 'r', encoding='utf-8') as f:
             return f.read()
 
-    def save_markdown(self, filename: str, content: str):
-        """Save content to a markdown file."""
+    async def save_markdown(self, filename: str, content: str):
+        """Save content to a markdown file and generate keywords."""
         filepath = os.path.join(self.storage_dir, f"{filename}.md")
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(content)
+
+        # Generate and save keywords
+        keywords = await self.keyword_service.extract_keywords(content)
+        self.keyword_service.save_keywords(filename, keywords)
+
+    def get_keywords(self, filename: str) -> List[str]:
+        """Get keywords for a markdown file."""
+        return self.keyword_service.load_keywords(filename)
+
+    async def find_best_context(self, question: str) -> str:
+        """Find the best matching markdown file for a question."""
+        # Extract keywords from the question
+        question_keywords = await self.keyword_service.extract_keywords(question)
+        
+        # Find best matching file
+        all_files = self.list_files()
+        best_match = self.keyword_service.find_best_match(question_keywords, all_files)
+        
+        if best_match:
+            return self.get_markdown(best_match)
+        return ""
 
     def get_suggested_changes(self) -> List[Dict[str, Any]]:
         """Get all suggested changes for markdown files."""

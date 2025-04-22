@@ -1,12 +1,13 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
+import json
 import os
 
 from services.llm_service import LLMService
-from services.vector_store import VectorStore
 from services.markdown_service import MarkdownService
+from services.vector_store import VectorStore
 
 app = FastAPI(title="BookNotFound API")
 
@@ -21,12 +22,23 @@ app.add_middleware(
 
 # Initialize services
 llm_service = LLMService()
+markdown_service = None
 vector_store = VectorStore()
-markdown_service = MarkdownService()
 
-class QuestionRequest(BaseModel):
+@app.on_event("startup")
+async def startup_event():
+    """Initialize async services on startup."""
+    global markdown_service
+    markdown_service = await MarkdownService.create(llm_service)
+
+class Question(BaseModel):
     question: str
     context: Optional[str] = None
+
+class Answer(BaseModel):
+    answer: str
+    certainty: float
+    model: str
 
 class FeedbackRequest(BaseModel):
     question_id: str
@@ -41,30 +53,19 @@ async def root():
 async def list_markdown_files():
     try:
         files = markdown_service.list_files()
-        return files
+        return {"files": files}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.post("/api/ask")
-async def ask_question(request: QuestionRequest):
+@app.post("/api/question", response_model=Answer)
+async def ask_question(question: Question):
     try:
-        # Get relevant context from vector store
-        context = vector_store.search(request.question)
+        # Find best matching context using keywords
+        context = await markdown_service.find_best_context(question.question)
         
-        # Generate answer using LLM
-        answer = await llm_service.generate_answer(
-            question=request.question,
-            context=context
-        )
-        
-        # Store in vector database
-        vector_store.add_qa_pair(
-            question=request.question,
-            answer=answer["answer"],
-            certainty=answer["certainty"]
-        )
-        
-        return answer
+        # Generate answer using the matched context
+        response = await llm_service.generate_answer(question.question, context)
+        return response
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -85,9 +86,18 @@ async def submit_feedback(request: FeedbackRequest):
 async def get_markdown(filename: str):
     try:
         content = markdown_service.get_markdown(filename)
-        return {"content": content}
+        keywords = markdown_service.get_keywords(filename)
+        return {"content": content, "keywords": keywords}
     except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="Markdown file not found")
+        raise HTTPException(status_code=404, detail="File not found")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/markdown/{filename}")
+async def save_markdown(filename: str, content: Dict[str, str]):
+    try:
+        await markdown_service.save_markdown(filename, content["content"])
+        return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
