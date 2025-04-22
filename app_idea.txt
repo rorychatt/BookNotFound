@@ -2,15 +2,25 @@ I want to build an app with following features:
 
 - Store documentation as markdown files on the backend
 - Allow users to submit questions based on the documentation
-- Certainty score for ai results based on user feedback, positive or negative, with users actually editing 
+- Certainty score for ai results based on user feedback, positive or negative
+- Feedback window where users can edit the markdown to propose changes
+- Response widnow that returns ai output with the markdown from the backend, displaying the date of the markdown
 
 Backend features:
 
-- python library running a LLM locally, supporting open ai api (but I want to run locally)
+- python library running a LLM locally, supporting open ai api (but I want to run locally so we need to run some simple LNN locally)
 - reads existing markdowns, updates them based on feedback, creates new markdowns for given topics
 - vector database for storing ai results that adapts over time.
 - a feature where we can call a function that proposes what changes need to be made to the documentation files based on user submitted feedback and the values stored in vector base
 
-All FE and BE features must be run locally.
+All FE and BE features must be run locally. Support a M3 Max mac with 32gb RAM
 
-For frontend, use angular 19
+For frontend, use angular 19, tailwindcss and daisyui
+
+write gitignore files to include build stuff.
+
+We do not directly edit markdowns based on user feedback.
+To create new or update exisitng markdowns, admin user gets another window.
+There we can see (if existing) original markdown together with the ai suggestion changes to it based on user sumbitted feedback and stored values in the vector database for that latest markdown
+
+Proposed changes are viewable in github PR view like window.
