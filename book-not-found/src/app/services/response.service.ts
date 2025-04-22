@@ -18,6 +18,10 @@ export class ResponseService {
   response$ = this.responseSubject.asObservable();
 
   updateResponse(response: ResponseData) {
+    // If needs_new_doc is true, ensure matching_file is null
+    if (response.needsNewDoc) {
+      response.matchingFile = null;
+    }
     this.responseSubject.next(response);
   }
 

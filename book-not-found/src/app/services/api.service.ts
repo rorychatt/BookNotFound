@@ -19,10 +19,10 @@ export interface QuestionResponse {
 }
 
 export interface FeedbackRequest {
-  fileName: string | null;
-  isPositive: boolean;
-  feedbackText: string;
-  suggestedChanges?: string;
+  file_name: string | null;
+  is_positive: boolean;
+  feedback_text: string;
+  suggested_changes?: string;
 }
 
 export interface MarkdownContent {
@@ -88,10 +88,10 @@ export class ApiService {
   async submitFeedback(feedback: FeedbackRequest): Promise<void> {
     await firstValueFrom(
       this.http.post<void>(`${this.apiUrl}/api/feedback`, {
-        file_name: feedback.fileName,
-        is_positive: feedback.isPositive,
-        feedback_text: feedback.feedbackText,
-        suggested_changes: feedback.suggestedChanges
+        file_name: feedback.file_name,
+        is_positive: feedback.is_positive,
+        feedback_text: feedback.feedback_text,
+        suggested_changes: feedback.suggested_changes
       })
     );
   }

@@ -34,17 +34,23 @@ class MarkdownService:
         try:
             # Clear the keyword storage directory
             keyword_storage = os.path.join(os.path.dirname(__file__), "..", "keyword_storage")
-            if os.path.exists(keyword_storage):
-                for file in os.listdir(keyword_storage):
-                    if file.endswith('.json'):
-                        os.remove(os.path.join(keyword_storage, file))
+            os.makedirs(keyword_storage, exist_ok=True)
+            for file in os.listdir(keyword_storage):
+                if file.endswith('.json'):
+                    os.remove(os.path.join(keyword_storage, file))
 
             # Generate fresh keywords for all markdown files
             files = self.list_files()
+            print(f"Generating keywords for files: {files}")  # Debug log
             for filename in files:
-                content = self.get_markdown(filename)
-                keywords = await self.keyword_service.extract_keywords(content)
-                self.keyword_service.save_keywords(filename, keywords)
+                try:
+                    content = self.get_markdown(filename)
+                    print(f"Extracting keywords for {filename}")  # Debug log
+                    keywords = await self.keyword_service.extract_keywords(content)
+                    print(f"Got keywords for {filename}: {keywords}")  # Debug log
+                    self.keyword_service.save_keywords(filename, keywords)
+                except Exception as e:
+                    print(f"Error processing file {filename}: {str(e)}")
         except Exception as e:
             print(f"Warning: Error during keyword regeneration: {str(e)}")
 
@@ -54,7 +60,10 @@ class MarkdownService:
         for filename in os.listdir(self.storage_dir):
             if filename.endswith('.md'):
                 # Remove the .md extension
-                files.append(filename[:-3])
+                base_name = filename[:-3]
+                # Skip hidden files and system files
+                if not base_name.startswith('.') and not base_name.startswith('_'):
+                    files.append(base_name)
         return files
 
     def get_markdown(self, filename: str) -> str:
@@ -68,6 +77,9 @@ class MarkdownService:
 
     async def save_markdown(self, filename: str, content: str):
         """Save content to a markdown file and generate keywords."""
+        # Remove .md extension if present
+        filename = filename[:-3] if filename.endswith('.md') else filename
+        
         filepath = os.path.join(self.storage_dir, f"{filename}.md")
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(content)
@@ -84,16 +96,21 @@ class MarkdownService:
         """Find the best matching markdown file for a question."""
         # Extract keywords from the question
         question_keywords = await self.keyword_service.extract_keywords(question)
+        print(f"Extracted keywords from question: {question_keywords}")
         
         # Find best matching file
         all_files = self.list_files()
+        print(f"Available files: {all_files}")
         best_match = self.keyword_service.find_best_match(question_keywords, all_files)
+        print(f"Best matching file: {best_match}")
         
         # Store the matching file
         self._current_matching_file = best_match
         
         if best_match:
-            return self.get_markdown(best_match)
+            content = self.get_markdown(best_match)
+            print(f"Found matching content from {best_match}: {content[:100]}...")  # Print first 100 chars
+            return content
         return ""
 
     def get_current_matching_file(self) -> Optional[str]:

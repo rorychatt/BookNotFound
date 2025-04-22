@@ -109,4 +109,16 @@ export class AdminPanelComponent implements OnInit {
       }
     });
   }
+
+  async saveContent() {
+    if (!this.selectedFile) return;
+    
+    try {
+      await this.apiService.saveMarkdown(this.selectedFile, this.editedContent);
+      this.originalContent = this.editedContent;
+      console.log('Content saved successfully');
+    } catch (error) {
+      console.error('Error saving content:', error);
+    }
+  }
 }

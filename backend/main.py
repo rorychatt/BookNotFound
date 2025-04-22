@@ -66,29 +66,31 @@ async def ask_question(question: Question):
         # Extract keywords from the question
         question_keywords = await markdown_service.keyword_service.extract_keywords(question.question)
         
-        # Find best matching context using keywords
+        # Find best context using keywords
         context = await markdown_service.find_best_context(question.question)
-        matching_file = markdown_service.get_current_matching_file()  # We'll add this method
         
         if not context:
-            # No good match found
+            # No good match found, don't return any matching file
             return {
-                "answer": "I don't have enough information to answer this question. Would you like to create a new documentation file for this topic?",
+                "answer": "Based on the provided context, I was unable to find any relevant information about this topic. Please provide more context or rephrase the question to improve my ability to assist you.",
                 "certainty": 0.0,
-                "model": "gpt-3.5-turbo",
+                "model": markdown_service.llm_service.llm.model_path.split('/')[-1],
                 "matching_file": None,
-                "suggested_keywords": question_keywords,
-                "needs_new_doc": True
+                "needs_new_doc": True,
+                "suggested_keywords": question_keywords
             }
         
+        # If we have a context, get the matching file
+        matching_file = markdown_service.get_current_matching_file()
+        
         # Generate answer using the matched context
-        response = await llm_service.generate_answer(question.question, context)
+        response = await markdown_service.llm_service.generate_answer(question.question, context)
         
         # Add matching file and certainty to response
         return {
             "answer": response["answer"],
             "certainty": response["certainty"],
-            "model": response["model"],
+            "model": markdown_service.llm_service.llm.model_path.split('/')[-1],
             "matching_file": matching_file,
             "needs_new_doc": False,
             "suggested_keywords": question_keywords

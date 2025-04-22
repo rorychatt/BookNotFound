@@ -1,18 +1,13 @@
 [
-  "search",
-  "api",
-  "context",
-  "matching",
-  "extraction",
-  "configuration",
-  "setup",
-  "installation",
-  "usage",
-  "examples",
-  "testing",
-  "deployment",
-  "security",
+  "booknotfound",
   "documentation",
-  "endpoints",
-  "fallback_keyword_16"
+  "question-answering",
+  "natural language",
+  "context-aware",
+  "confidence scoring",
+  "source documentation",
+  "feedback collection",
+  "api endpoints",
+  "configuration",
+  "best practices"
 ]

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { MarkdownModule } from 'ngx-markdown';
 import { MarkdownEditorComponent } from '../markdown-editor/markdown-editor.component';
+import { v4 as uuidv4 } from 'uuid';
 
 @Component({
   selector: 'app-feedback-window',
@@ -34,10 +35,10 @@ export class FeedbackWindowComponent {
 
     try {
       await this.apiService.submitFeedback({
-        fileName: this.matchingFile,
-        isPositive: this.isPositive,
-        feedbackText: this.feedbackText,
-        suggestedChanges: this.suggestedChanges
+        file_name: this.matchingFile,
+        is_positive: this.isPositive,
+        feedback_text: this.feedbackText,
+        suggested_changes: this.showEditor ? this.suggestedChanges : undefined
       });
 
       // Reset form

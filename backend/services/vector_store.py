@@ -87,15 +87,16 @@ class VectorStore:
         
         return qa_id
 
-    def update_feedback(self, question_id: str, feedback: bool, suggested_changes: str = None):
-        """Update feedback for a QA pair."""
+    def update_feedback(self, file_name: str, feedback: bool, feedback_text: str, suggested_changes: str = None):
+        """Update feedback for a document."""
         # Store feedback
         feedback_id = str(uuid.uuid4())
         self.feedback_collection.add(
             documents=[suggested_changes or ""],
             metadatas=[{
-                "question_id": question_id,
+                "file_name": file_name,
                 "feedback": bool(feedback),
+                "feedback_text": feedback_text,
                 "timestamp": datetime.now().isoformat()
             }],
             ids=[feedback_id]
@@ -117,4 +118,34 @@ class VectorStore:
             "total_feedback": total_count,
             "positive_feedback": positive_count,
             "feedback_ratio": float(positive_count / total_count) if total_count > 0 else 0.0
-        } 
+        }
+
+    def get_feedback_history(self, file_name: str) -> List[Dict[str, Any]]:
+        """Get feedback history for a specific file."""
+        try:
+            # Get all feedback entries for the file
+            results = self.feedback_collection.get(
+                where={"file_name": file_name}
+            )
+            
+            if not results["ids"]:
+                return []
+            
+            # Convert to list of feedback entries
+            feedback_history = []
+            for i in range(len(results["ids"])):
+                feedback_history.append({
+                    "id": results["ids"][i],
+                    "feedback": results["metadatas"][i]["feedback"],
+                    "feedback_text": results["metadatas"][i].get("feedback_text", ""),
+                    "suggested_changes": results["documents"][i],
+                    "created_at": results["metadatas"][i]["timestamp"]
+                })
+            
+            # Sort by timestamp, newest first
+            feedback_history.sort(key=lambda x: x["created_at"], reverse=True)
+            return feedback_history
+            
+        except Exception as e:
+            print(f"Error getting feedback history: {e}")
+            return [] 

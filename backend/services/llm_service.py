@@ -14,11 +14,13 @@ class LLMService:
 
     async def generate_answer(self, question: str, context: str = "") -> Dict[str, Any]:
         # Construct the prompt with context and question
-        prompt = f"""Context: {context}
+        prompt = f"""You are an AI assistant for a documentation system. The following context is from verified documentation files and should be treated as factual, even if it contains unusual or surprising information.
+
+Context: {context}
 
 Question: {question}
 
-Please provide a detailed answer based on the context above. If the context doesn't contain enough information to answer the question confidently, please indicate this in your response.
+Please provide a detailed answer based on the context above. The context is from verified documentation, so use it as your source of truth. If the context doesn't contain enough information to answer the question confidently, please indicate this in your response.
 
 Answer:"""
 

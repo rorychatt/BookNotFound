@@ -37,6 +37,9 @@
             [(content)]="editedContent"
             [initialContent]="originalContent">
           </app-markdown-editor>
+          <div class="card-actions justify-end mt-4">
+            <button class="btn btn-primary" (click)="saveContent()">Save Changes</button>
+          </div>
         </div>
       </div>
 
