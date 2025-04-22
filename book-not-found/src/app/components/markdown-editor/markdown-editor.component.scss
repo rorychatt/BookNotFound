@@ -12,4 +12,113 @@
     width: 3px !important;
     margin-left: 3px;
   }
+
+  .prose {
+    --tw-prose-body: theme('colors.base-content');
+    --tw-prose-headings: theme('colors.primary');
+    --tw-prose-links: theme('colors.secondary');
+    --tw-prose-bold: theme('colors.base-content');
+    --tw-prose-code: theme('colors.accent');
+    --tw-prose-quotes: theme('colors.neutral');
+    
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--tw-prose-headings);
+      margin-top: 2em;
+      margin-bottom: 1em;
+      font-weight: 600;
+    }
+
+    h1 { font-size: 2.25em; }
+    h2 { font-size: 1.875em; }
+    h3 { font-size: 1.5em; }
+
+    a {
+      color: var(--tw-prose-links);
+      text-decoration: underline;
+      &:hover {
+        opacity: 0.8;
+      }
+    }
+
+    code {
+      color: var(--tw-prose-code);
+      background: rgba(0, 0, 0, 0.1);
+      padding: 0.2em 0.4em;
+      border-radius: 0.25em;
+      font-size: 0.875em;
+    }
+
+    pre {
+      background: rgba(0, 0, 0, 0.2);
+      padding: 1em;
+      border-radius: 0.5em;
+      overflow-x: auto;
+      margin: 1.5em 0;
+
+      code {
+        background: none;
+        padding: 0;
+        font-size: 0.875em;
+        color: inherit;
+      }
+    }
+
+    blockquote {
+      border-left: 4px solid var(--tw-prose-quotes);
+      padding-left: 1em;
+      margin: 1.5em 0;
+      font-style: italic;
+      color: var(--tw-prose-quotes);
+    }
+
+    ul, ol {
+      margin: 1.5em 0;
+      padding-left: 1.5em;
+    }
+
+    li {
+      margin: 0.5em 0;
+    }
+
+    ul {
+      list-style-type: disc;
+      ul {
+        list-style-type: circle;
+      }
+    }
+
+    ol {
+      list-style-type: decimal;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.5em 0;
+    }
+
+    th, td {
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 0.5em;
+      text-align: left;
+    }
+
+    th {
+      background: rgba(0, 0, 0, 0.1);
+      font-weight: 600;
+    }
+
+    hr {
+      border: 0;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      margin: 2em 0;
+    }
+
+    img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 0.5em;
+      margin: 1.5em 0;
+    }
+  }
 }

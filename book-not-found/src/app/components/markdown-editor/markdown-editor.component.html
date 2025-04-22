@@ -1,6 +1,6 @@
-<div class="flex flex-col h-screen gap-4">
+<div class="flex flex-col min-h-screen gap-4 p-4">
   <!-- Toolbar -->
-  <div class="bg-base-200 p-4 flex justify-between items-center">
+  <div class="bg-base-200 p-4 flex justify-between items-center rounded-lg">
     <div class="flex gap-2">
       <button class="btn btn-sm" (click)="loadMarkdownFile('getting-started.md')">
         Load Sample
@@ -13,28 +13,28 @@
   </div>
 
   <!-- Diff Editor -->
-  <div class="flex-1 bg-base-300 rounded-lg overflow-hidden">
+  <div class="h-[600px] bg-base-300 rounded-lg overflow-hidden">
     <div id="monaco-diff-editor" class="h-full w-full"></div>
   </div>
 
   <!-- Preview Area -->
-  <div class="grid grid-cols-2 gap-4 h-96">
+  <div class="grid grid-cols-2 gap-4">
     <!-- Original Preview -->
     <div class="flex flex-col">
-      <div class="bg-base-200 p-2 mb-2">
+      <div class="bg-base-200 p-2 mb-2 rounded-lg">
         <span class="text-sm">Original Preview</span>
       </div>
-      <div class="flex-1 prose max-w-none p-4 overflow-auto bg-base-100 rounded-lg">
+      <div class="prose prose-invert max-w-none p-6 bg-base-100 rounded-lg shadow-inner overflow-auto">
         <div [innerHTML]="originalHtmlContent"></div>
       </div>
     </div>
 
     <!-- Modified Preview -->
     <div class="flex flex-col">
-      <div class="bg-base-200 p-2 mb-2">
+      <div class="bg-base-200 p-2 mb-2 rounded-lg">
         <span class="text-sm">Modified Preview</span>
       </div>
-      <div class="flex-1 prose max-w-none p-4 overflow-auto bg-base-100 rounded-lg">
+      <div class="prose prose-invert max-w-none p-6 bg-base-100 rounded-lg shadow-inner overflow-auto">
         <div [innerHTML]="htmlContent"></div>
       </div>
     </div>
