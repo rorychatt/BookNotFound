@@ -3,17 +3,26 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { tap, catchError } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
+
+export interface MarkdownFilesResponse {
+  files: string[];
+}
 
 export interface QuestionResponse {
   answer: string;
   certainty: number;
   model: string;
+  matching_file: string | null;
+  needs_new_doc: boolean;
+  suggested_keywords: string[] | null;
 }
 
 export interface FeedbackRequest {
-  question_id: string;
-  feedback: boolean;
-  suggested_changes?: string;
+  fileName: string | null;
+  isPositive: boolean;
+  feedbackText: string;
+  suggestedChanges?: string;
 }
 
 export interface MarkdownContent {
@@ -46,12 +55,15 @@ export class ApiService {
 
   constructor(private http: HttpClient) { }
 
-  getMarkdownFiles(): Observable<string[]> {
-    return this.http.get<string[]>(`${this.apiUrl}/api/markdown/files`);
+  getMarkdownFiles(): Observable<MarkdownFilesResponse> {
+    return this.http.get<MarkdownFilesResponse>(`${this.apiUrl}/api/markdown/files`);
   }
 
-  getMarkdown(filename: string): Observable<MarkdownContent> {
-    return this.http.get<MarkdownContent>(`${this.apiUrl}/api/markdown/${filename}`);
+  async getMarkdown(filename: string): Promise<{ content: string; keywords: string[] }> {
+    const response = await firstValueFrom(
+      this.http.get<{ content: string; keywords: string[] }>(`${this.apiUrl}/api/markdown/${filename}`)
+    );
+    return response;
   }
 
   getFeedbackHistory(filename: string): Observable<FeedbackHistory[]> {
@@ -66,25 +78,31 @@ export class ApiService {
     return this.http.post<{ status: string }>(`${this.apiUrl}/api/suggestions/${suggestionId}/reject`, {});
   }
 
-  askQuestion(question: string, context?: string): Observable<QuestionResponse> {
-    console.log('Sending question to API:', { question, context });
-    return this.http.post<QuestionResponse>(`${this.apiUrl}/api/ask`, {
-      question,
-      context
-    }).pipe(
-      tap(response => console.log('Received response:', response)),
-      catchError(error => {
-        console.error('Error asking question:', error);
-        throw error;
+  async askQuestion(question: string): Promise<QuestionResponse> {
+    const response = await firstValueFrom(
+      this.http.post<QuestionResponse>(`${this.apiUrl}/api/question`, { question })
+    );
+    return response;
+  }
+
+  async submitFeedback(feedback: FeedbackRequest): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${this.apiUrl}/api/feedback`, {
+        file_name: feedback.fileName,
+        is_positive: feedback.isPositive,
+        feedback_text: feedback.feedbackText,
+        suggested_changes: feedback.suggestedChanges
       })
     );
   }
 
-  submitFeedback(feedback: FeedbackRequest): Observable<{ status: string }> {
-    return this.http.post<{ status: string }>(`${this.apiUrl}/api/feedback`, feedback);
-  }
-
   getSuggestions(): Observable<{ suggestions: Suggestion[] }> {
     return this.http.get<{ suggestions: Suggestion[] }>(`${this.apiUrl}/api/suggestions`);
+  }
+
+  async saveMarkdown(filename: string, content: string): Promise<void> {
+    await firstValueFrom(
+      this.http.post<void>(`${this.apiUrl}/api/markdown/${filename}`, { content })
+    );
   }
 } 

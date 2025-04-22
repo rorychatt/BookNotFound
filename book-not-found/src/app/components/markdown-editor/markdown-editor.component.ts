@@ -1,4 +1,4 @@
-import { Component, OnInit, NgZone, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { Component, OnInit, NgZone, Input, OnChanges, SimpleChanges, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -17,7 +17,9 @@ declare const monaco: any;
   styleUrl: './markdown-editor.component.scss'
 })
 export class MarkdownEditorComponent implements OnInit, OnChanges {
+  @Input() initialContent: string = '';
   @Input() content: string = '';
+  @Output() contentChange = new EventEmitter<string>();
   markdownContent: string = '';
   originalContent: string = '';
   htmlContent: SafeHtml = '';
@@ -160,5 +162,10 @@ export class MarkdownEditorComponent implements OnInit, OnChanges {
     
     const originalHtml = marked(this.originalContent, { async: false });
     this.originalHtmlContent = this.sanitizer.bypassSecurityTrustHtml(originalHtml as string);
+  }
+
+  onContentChange(newContent: string) {
+    this.content = newContent;
+    this.contentChange.emit(newContent);
   }
 }

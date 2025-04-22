@@ -1,6 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ApiService, Suggestion } from '../../services/api.service';
+import { ApiService, Suggestion, FeedbackHistory, MarkdownFilesResponse } from '../../services/api.service';
 import { FormsModule } from '@angular/forms';
 import { MarkdownComponent } from 'ngx-markdown';
 import { MarkdownEditorComponent } from '../markdown-editor/markdown-editor.component';
@@ -13,12 +13,13 @@ import { MarkdownEditorComponent } from '../markdown-editor/markdown-editor.comp
   styleUrl: './admin-panel.component.scss'
 })
 export class AdminPanelComponent implements OnInit {
-  markdownFiles: string[] = [];
+  markdownFiles = signal<string[]>([]);
   selectedFile: string | null = null;
-  suggestions: Suggestion[] = [];
+  suggestions = signal<Suggestion[]>([]);
   selectedSuggestion: Suggestion | null = null;
   originalContent: string = '';
-  feedbackHistory: any[] = [];
+  editedContent: string = '';
+  feedbackHistory = signal<FeedbackHistory[]>([]);
 
   constructor(private apiService: ApiService) {}
 
@@ -28,9 +29,9 @@ export class AdminPanelComponent implements OnInit {
 
   loadMarkdownFiles() {
     this.apiService.getMarkdownFiles().subscribe({
-      next: (files) => {
-        this.markdownFiles = files;
-        console.log('Loaded markdown files:', files);
+      next: (response: MarkdownFilesResponse) => {
+        this.markdownFiles.set(response.files);
+        console.log('Loaded markdown files:', response.files);
       },
       error: (error) => {
         console.error('Error loading markdown files:', error);
@@ -45,23 +46,22 @@ export class AdminPanelComponent implements OnInit {
     this.loadFeedbackHistory(filename);
   }
 
-  loadFileContent(filename: string) {
-    this.apiService.getMarkdown(filename).subscribe({
-      next: (content) => {
-        this.originalContent = content.content;
-        console.log('Loaded file content:', content);
-      },
-      error: (error) => {
-        console.error('Error loading file content:', error);
-      }
-    });
+  async loadFileContent(filename: string) {
+    try {
+      const content = await this.apiService.getMarkdown(filename);
+      this.originalContent = content.content;
+      this.editedContent = content.content;
+      console.log('Loaded file content:', content);
+    } catch (error) {
+      console.error('Error loading file content:', error);
+    }
   }
 
   loadSuggestions(filename: string) {
     this.apiService.getSuggestions().subscribe({
       next: (response) => {
-        this.suggestions = response.suggestions.filter(s => s.filename === filename);
-        console.log('Loaded suggestions:', this.suggestions);
+        this.suggestions.set(response.suggestions.filter(s => s.filename === filename));
+        console.log('Loaded suggestions:', this.suggestions());
       },
       error: (error) => {
         console.error('Error loading suggestions:', error);
@@ -72,7 +72,7 @@ export class AdminPanelComponent implements OnInit {
   loadFeedbackHistory(filename: string) {
     this.apiService.getFeedbackHistory(filename).subscribe({
       next: (history) => {
-        this.feedbackHistory = history;
+        this.feedbackHistory.set(history || []);
         console.log('Loaded feedback history:', history);
       },
       error: (error) => {

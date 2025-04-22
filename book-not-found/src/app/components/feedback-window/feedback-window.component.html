@@ -1,50 +1,75 @@
 <div class="space-y-6">
-  <!-- Feedback Input -->
+  <!-- Feedback Type Selection -->
+  <div class="space-y-2">
+    <h3 class="text-lg font-semibold">Was this answer helpful?</h3>
+    <div class="flex gap-2">
+      <button 
+        class="btn btn-sm" 
+        [class.btn-success]="isPositive === true"
+        (click)="setFeedbackType(true)">
+        👍 Yes
+      </button>
+      <button 
+        class="btn btn-sm" 
+        [class.btn-error]="isPositive === false"
+        (click)="setFeedbackType(false)">
+        👎 No
+      </button>
+    </div>
+  </div>
+
+  <!-- Feedback Text -->
   <div class="form-control">
     <label class="label">
-      <span class="label-text">Your Feedback</span>
+      <span class="label-text">Your feedback</span>
     </label>
-    <textarea 
-      class="textarea textarea-bordered h-32 bg-base-200" 
-      placeholder="Provide your feedback here..."
-      [(ngModel)]="feedback">
+    <textarea
+      class="textarea textarea-bordered h-24"
+      [(ngModel)]="feedbackText"
+      placeholder="Please explain why this answer was or wasn't helpful...">
     </textarea>
   </div>
   
-  <!-- Feedback Type Buttons -->
-  <div class="flex gap-2">
-    <button class="btn btn-success" (click)="setFeedbackType('positive')">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-      </svg>
-      Positive Feedback
+  <!-- Suggest Changes -->
+  <div *ngIf="matchingFile" class="space-y-2">
+    <button 
+      class="btn btn-sm btn-link"
+      (click)="toggleEditor()">
+      {{ showEditor ? 'Hide Editor' : 'Suggest Changes to Documentation' }}
     </button>
-    <button class="btn btn-error" (click)="setFeedbackType('negative')">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14H5.236a2 2 0 01-1.789-2.894l3.5-7A2 2 0 018.736 3h4.018c.163 0 .326.02.485.06L17 4m-7 10v2a2 2 0 002 2h.095c.5 0 .905-.405.905-.905 0-.714.211-1.412.608-2.006L17 13V4m-7 10h2m5 6H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
-      </svg>
-      Negative Feedback
-    </button>
-  </div>
-  
-  <!-- Proposed Changes Editor -->
-  <div class="form-control">
-    <label class="label">
-      <span class="label-text">Proposed Changes</span>
-      <span class="label-text-alt">Use markdown format</span>
-    </label>
-    <div class="bg-base-200 rounded-lg">
-      <div id="monaco-proposed-changes" class="h-[300px] w-full rounded-lg overflow-hidden"></div>
+
+    <div *ngIf="showEditor" class="grid grid-cols-2 gap-4">
+      <!-- Original Content -->
+      <div class="border rounded-lg p-4 bg-base-200">
+        <h4 class="text-sm font-semibold mb-2">Original Content</h4>
+        <div class="prose max-w-none">
+          <markdown [data]="answer"></markdown>
+        </div>
+      </div>
+
+      <!-- Editable Content -->
+      <div class="border rounded-lg p-4 bg-base-200">
+        <h4 class="text-sm font-semibold mb-2">Proposed Changes</h4>
+        <app-markdown-editor
+          [(content)]="suggestedChanges"
+          [initialContent]="answer">
+        </app-markdown-editor>
+      </div>
     </div>
   </div>
   
   <!-- Submit Button -->
-  <div class="form-control">
-    <button class="btn btn-primary" (click)="submitFeedback()">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-      </svg>
-      Submit Feedback
+  <div class="flex justify-end">
+    <button 
+      class="btn btn-primary"
+      (click)="submitFeedback()"
+      [disabled]="isPositive === null || isLoading">
+      {{ isLoading ? 'Submitting...' : 'Submit Feedback' }}
     </button>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="error" class="alert alert-error">
+    {{ error }}
   </div>
 </div>

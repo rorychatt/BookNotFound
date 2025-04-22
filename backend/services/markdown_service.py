@@ -1,5 +1,5 @@
 import os
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 import markdown
 from datetime import datetime
 import json
@@ -18,6 +18,9 @@ class MarkdownService:
         # Initialize services
         self.llm_service = llm_service or LLMService()
         self.keyword_service = KeywordService(self.llm_service)
+        
+        # Track current matching file
+        self._current_matching_file = None
 
     @classmethod
     async def create(cls, llm_service: LLMService = None) -> 'MarkdownService':
@@ -86,9 +89,16 @@ class MarkdownService:
         all_files = self.list_files()
         best_match = self.keyword_service.find_best_match(question_keywords, all_files)
         
+        # Store the matching file
+        self._current_matching_file = best_match
+        
         if best_match:
             return self.get_markdown(best_match)
         return ""
+
+    def get_current_matching_file(self) -> Optional[str]:
+        """Get the filename of the current matching markdown file."""
+        return self._current_matching_file
 
     def get_suggested_changes(self) -> List[Dict[str, Any]]:
         """Get all suggested changes for markdown files."""

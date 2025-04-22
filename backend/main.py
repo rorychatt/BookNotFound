@@ -39,6 +39,9 @@ class Answer(BaseModel):
     answer: str
     certainty: float
     model: str
+    matching_file: Optional[str]
+    needs_new_doc: bool
+    suggested_keywords: Optional[List[str]]
 
 class FeedbackRequest(BaseModel):
     question_id: str
@@ -60,25 +63,64 @@ async def list_markdown_files():
 @app.post("/api/question", response_model=Answer)
 async def ask_question(question: Question):
     try:
+        # Extract keywords from the question
+        question_keywords = await markdown_service.keyword_service.extract_keywords(question.question)
+        
         # Find best matching context using keywords
         context = await markdown_service.find_best_context(question.question)
+        matching_file = markdown_service.get_current_matching_file()  # We'll add this method
+        
+        if not context:
+            # No good match found
+            return {
+                "answer": "I don't have enough information to answer this question. Would you like to create a new documentation file for this topic?",
+                "certainty": 0.0,
+                "model": "gpt-3.5-turbo",
+                "matching_file": None,
+                "suggested_keywords": question_keywords,
+                "needs_new_doc": True
+            }
         
         # Generate answer using the matched context
         response = await llm_service.generate_answer(question.question, context)
-        return response
+        
+        # Add matching file and certainty to response
+        return {
+            "answer": response["answer"],
+            "certainty": response["certainty"],
+            "model": response["model"],
+            "matching_file": matching_file,
+            "needs_new_doc": False,
+            "suggested_keywords": question_keywords
+        }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/feedback")
-async def submit_feedback(request: FeedbackRequest):
+async def submit_feedback(feedback: Dict[str, Any]):
     try:
-        # Update vector store with feedback
-        vector_store.update_feedback(
-            question_id=request.question_id,
-            feedback=request.feedback,
-            suggested_changes=request.suggested_changes
-        )
-        return {"status": "success"}
+        file_name = feedback["file_name"]
+        is_positive = feedback["is_positive"]
+        feedback_text = feedback["feedback_text"]
+        suggested_changes = feedback.get("suggested_changes")
+        
+        if suggested_changes:
+            # If there are suggested changes, create a new suggestion
+            suggestion_id = markdown_service.add_suggestion(
+                filename=file_name,
+                original_content=markdown_service.get_markdown(file_name),
+                suggested_content=suggested_changes,
+                feedback_context=feedback_text
+            )
+            return {"status": "success", "suggestion_id": suggestion_id}
+        else:
+            # Just store the feedback
+            vector_store.update_feedback(
+                file_name=file_name,
+                feedback=is_positive,
+                feedback_text=feedback_text
+            )
+            return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

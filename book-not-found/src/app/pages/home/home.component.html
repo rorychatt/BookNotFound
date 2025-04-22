@@ -11,7 +11,9 @@
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
       <h2 class="card-title">AI Response</h2>
-      <app-response-window [response]="currentResponse"></app-response-window>
+      <div class="space-y-4">
+        <app-response-window [response]="currentResponse"></app-response-window>
+      </div>
     </div>
   </div>
 
@@ -19,7 +21,9 @@
   <div class="card bg-base-100 shadow-xl">
     <div class="card-body">
       <h2 class="card-title">Provide Feedback</h2>
-      <app-feedback-window></app-feedback-window>
+      <div class="space-y-4">
+        <app-feedback-window></app-feedback-window>
+      </div>
     </div>
   </div>
 </div>
