@@ -1,0 +1,53 @@
+<div class="space-y-6">
+  <div class="card bg-base-200">
+    <div class="card-body">
+      <h2 class="card-title">Documentation Management</h2>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">Original Documentation</span>
+          </label>
+          <textarea class="textarea textarea-bordered h-64" placeholder="Original markdown content..."></textarea>
+        </div>
+        
+        <div class="form-control">
+          <label class="label">
+            <span class="label-text">AI Suggested Changes</span>
+          </label>
+          <textarea class="textarea textarea-bordered h-64" placeholder="AI suggested changes..."></textarea>
+        </div>
+      </div>
+      
+      <div class="card-actions justify-end mt-4">
+        <button class="btn btn-primary">Apply Changes</button>
+        <button class="btn btn-ghost">Discard Changes</button>
+      </div>
+    </div>
+  </div>
+  
+  <div class="card bg-base-200">
+    <div class="card-body">
+      <h2 class="card-title">Vector Database Management</h2>
+      <div class="overflow-x-auto">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Topic</th>
+              <th>Last Updated</th>
+              <th>Certainty Score</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>No entries yet</td>
+              <td>--</td>
+              <td>--</td>
+              <td>--</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
