@@ -1,4 +1,4 @@
-<div class="h-screen flex flex-col">
+<div class="flex flex-col h-screen gap-4">
   <!-- Toolbar -->
   <div class="bg-base-200 p-4 flex justify-between items-center">
     <div class="flex gap-2">
@@ -6,29 +6,37 @@
         Load Sample
       </button>
       <button class="btn btn-sm btn-success" (click)="saveCurrentFile()">
-        Save
+        Save Changes
       </button>
     </div>
-    <div class="flex gap-2">
-      <button class="btn btn-sm" [class.btn-primary]="!isPreviewMode" (click)="togglePreview()">
-        Edit
-      </button>
-      <button class="btn btn-sm" [class.btn-primary]="isPreviewMode" (click)="togglePreview()">
-        Preview
-      </button>
-    </div>
+    <span class="text-sm">Original Version: {{ originalTimestamp | date:'medium' }}</span>
   </div>
 
-  <!-- Editor/Preview Container -->
-  <div class="flex-1 grid" [class.grid-cols-2]="!isPreviewMode" [class.grid-cols-1]="isPreviewMode">
-    <!-- Editor -->
-    <div [class.hidden]="isPreviewMode">
-      <div id="monaco-editor-container" style="height: 90vh; width: 100%;"></div>
+  <!-- Diff Editor -->
+  <div class="flex-1 bg-base-300 rounded-lg overflow-hidden">
+    <div id="monaco-diff-editor" class="h-full w-full"></div>
+  </div>
+
+  <!-- Preview Area -->
+  <div class="grid grid-cols-2 gap-4 h-96">
+    <!-- Original Preview -->
+    <div class="flex flex-col">
+      <div class="bg-base-200 p-2 mb-2">
+        <span class="text-sm">Original Preview</span>
+      </div>
+      <div class="flex-1 prose max-w-none p-4 overflow-auto bg-base-100 rounded-lg">
+        <div [innerHTML]="originalHtmlContent"></div>
+      </div>
     </div>
 
-    <!-- Preview -->
-    <div class="prose max-w-none p-4 overflow-auto bg-base-100" [class.hidden]="!isPreviewMode">
-      <div [innerHTML]="htmlContent"></div>
+    <!-- Modified Preview -->
+    <div class="flex flex-col">
+      <div class="bg-base-200 p-2 mb-2">
+        <span class="text-sm">Modified Preview</span>
+      </div>
+      <div class="flex-1 prose max-w-none p-4 overflow-auto bg-base-100 rounded-lg">
+        <div [innerHTML]="htmlContent"></div>
+      </div>
     </div>
   </div>
 </div>

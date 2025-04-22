@@ -18,10 +18,12 @@ declare const monaco: any;
 })
 export class MarkdownEditorComponent implements OnInit {
   markdownContent: string = '';
+  originalContent: string = '';
   htmlContent: SafeHtml = '';
-  isPreviewMode: boolean = false;
-  editor: any;
+  originalHtmlContent: SafeHtml = '';
+  diffEditor: any;
   currentFile: string = 'getting-started.md';
+  originalTimestamp: Date = new Date();
 
   constructor(
     private markdownService: MarkdownService,
@@ -45,24 +47,36 @@ export class MarkdownEditorComponent implements OnInit {
     require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@latest/min/vs' } });
     // @ts-ignore
     require(['vs/editor/editor.main'], () => {
-      this.createEditor();
+      this.createDiffEditor();
     });
   }
 
-  private createEditor() {
+  private createDiffEditor() {
     this.ngZone.run(() => {
-      const container = document.getElementById('monaco-editor-container');
+      const container = document.getElementById('monaco-diff-editor');
       if (container) {
-        this.editor = monaco.editor.create(container, {
-          value: this.markdownContent,
-          language: 'markdown',
+        this.diffEditor = monaco.editor.createDiffEditor(container, {
           theme: 'vs-dark',
-          automaticLayout: true
+          automaticLayout: true,
+          renderSideBySide: true,
+          originalEditable: false,
+          enableSplitViewResizing: true,
+          minimap: { enabled: false }
         });
 
-        this.editor.onDidChangeModelContent(() => {
+        // Set up models for original and modified content
+        const originalModel = monaco.editor.createModel(this.originalContent, 'markdown');
+        const modifiedModel = monaco.editor.createModel(this.markdownContent, 'markdown');
+        
+        this.diffEditor.setModel({
+          original: originalModel,
+          modified: modifiedModel
+        });
+
+        // Add change listener for preview updates
+        modifiedModel.onDidChangeContent(() => {
           this.ngZone.run(() => {
-            this.markdownContent = this.editor.getValue();
+            this.markdownContent = modifiedModel.getValue();
             this.updatePreview();
           });
         });
@@ -73,10 +87,19 @@ export class MarkdownEditorComponent implements OnInit {
   loadMarkdownFile(filename: string) {
     this.markdownService.getMarkdownFile(filename).subscribe(
       (content) => {
+        this.originalContent = content;
         this.markdownContent = content;
-        if (this.editor) {
-          this.editor.setValue(content);
+        this.originalTimestamp = new Date();
+        
+        if (this.diffEditor) {
+          const originalModel = monaco.editor.createModel(content, 'markdown');
+          const modifiedModel = monaco.editor.createModel(content, 'markdown');
+          this.diffEditor.setModel({
+            original: originalModel,
+            modified: modifiedModel
+          });
         }
+        
         this.updatePreview();
         this.currentFile = filename;
       }
@@ -84,10 +107,26 @@ export class MarkdownEditorComponent implements OnInit {
   }
 
   saveCurrentFile() {
-    this.markdownService.saveMarkdownFile(this.currentFile, this.markdownContent).subscribe(
+    const modifiedModel = this.diffEditor.getModifiedEditor().getModel();
+    const modifiedContent = modifiedModel.getValue();
+
+    this.markdownService.saveMarkdownFile(this.currentFile, modifiedContent).subscribe(
       (success) => {
         if (success) {
           console.log('File saved successfully');
+          // Update original content after successful save
+          this.originalContent = modifiedContent;
+          this.originalTimestamp = new Date();
+          
+          // Update the diff editor models
+          const originalModel = monaco.editor.createModel(modifiedContent, 'markdown');
+          this.diffEditor.getModel().original.dispose();
+          this.diffEditor.setModel({
+            original: originalModel,
+            modified: modifiedModel
+          });
+          
+          this.updatePreview();
         } else {
           console.error('Failed to save file');
         }
@@ -98,9 +137,8 @@ export class MarkdownEditorComponent implements OnInit {
   updatePreview() {
     const html = marked(this.markdownContent, { async: false });
     this.htmlContent = this.sanitizer.bypassSecurityTrustHtml(html as string);
-  }
-
-  togglePreview() {
-    this.isPreviewMode = !this.isPreviewMode;
+    
+    const originalHtml = marked(this.originalContent, { async: false });
+    this.originalHtmlContent = this.sanitizer.bypassSecurityTrustHtml(originalHtml as string);
   }
 }

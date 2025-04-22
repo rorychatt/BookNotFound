@@ -1,0 +1,15 @@
+:host {
+  display: block;
+}
+
+::ng-deep {
+  .modified-line {
+    background-color: rgba(0, 255, 0, 0.1);
+  }
+
+  .modified-line-decoration {
+    background-color: #2ea043;
+    width: 3px !important;
+    margin-left: 3px;
+  }
+}
