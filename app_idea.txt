@@ -1,0 +1,16 @@
+I want to build an app with following features:
+
+- Store documentation as markdown files on the backend
+- Allow users to submit questions based on the documentation
+- Certainty score for ai results based on user feedback, positive or negative, with users actually editing 
+
+Backend features:
+
+- python library running a LLM locally, supporting open ai api (but I want to run locally)
+- reads existing markdowns, updates them based on feedback, creates new markdowns for given topics
+- vector database for storing ai results that adapts over time.
+- a feature where we can call a function that proposes what changes need to be made to the documentation files based on user submitted feedback and the values stored in vector base
+
+All FE and BE features must be run locally.
+
+For frontend, use angular 19
