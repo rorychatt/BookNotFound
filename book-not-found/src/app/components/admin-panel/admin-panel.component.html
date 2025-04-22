@@ -1,27 +1,8 @@
-<div class="space-y-6">
+<div class="container mx-auto p-4 space-y-6">
   <div class="card bg-base-200">
     <div class="card-body">
       <h2 class="card-title">Documentation Management</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">Original Documentation</span>
-          </label>
-          <textarea class="textarea textarea-bordered h-64" placeholder="Original markdown content..."></textarea>
-        </div>
-        
-        <div class="form-control">
-          <label class="label">
-            <span class="label-text">AI Suggested Changes</span>
-          </label>
-          <textarea class="textarea textarea-bordered h-64" placeholder="AI suggested changes..."></textarea>
-        </div>
-      </div>
-      
-      <div class="card-actions justify-end mt-4">
-        <button class="btn btn-primary">Apply Changes</button>
-        <button class="btn btn-ghost">Discard Changes</button>
-      </div>
+      <app-markdown-editor></app-markdown-editor>
     </div>
   </div>
   

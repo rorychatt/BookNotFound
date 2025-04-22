@@ -1,0 +1,34 @@
+<div class="h-screen flex flex-col">
+  <!-- Toolbar -->
+  <div class="bg-base-200 p-4 flex justify-between items-center">
+    <div class="flex gap-2">
+      <button class="btn btn-sm" (click)="loadMarkdownFile('getting-started.md')">
+        Load Sample
+      </button>
+      <button class="btn btn-sm btn-success" (click)="saveCurrentFile()">
+        Save
+      </button>
+    </div>
+    <div class="flex gap-2">
+      <button class="btn btn-sm" [class.btn-primary]="!isPreviewMode" (click)="togglePreview()">
+        Edit
+      </button>
+      <button class="btn btn-sm" [class.btn-primary]="isPreviewMode" (click)="togglePreview()">
+        Preview
+      </button>
+    </div>
+  </div>
+
+  <!-- Editor/Preview Container -->
+  <div class="flex-1 grid" [class.grid-cols-2]="!isPreviewMode" [class.grid-cols-1]="isPreviewMode">
+    <!-- Editor -->
+    <div [class.hidden]="isPreviewMode">
+      <div id="monaco-editor-container" style="height: 90vh; width: 100%;"></div>
+    </div>
+
+    <!-- Preview -->
+    <div class="prose max-w-none p-4 overflow-auto bg-base-100" [class.hidden]="!isPreviewMode">
+      <div [innerHTML]="htmlContent"></div>
+    </div>
+  </div>
+</div>
