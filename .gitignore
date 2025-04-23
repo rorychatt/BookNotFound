@@ -42,7 +42,7 @@ frontend/.next/
 backend/markdown_storage/
 
 # Keywords storage
-backend/keywords_storage/
+backend/keyword_storage/
 
 # Vector store
 backend/vector_store/
