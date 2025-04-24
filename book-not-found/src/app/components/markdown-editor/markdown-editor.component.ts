@@ -143,14 +143,15 @@ Start writing your documentation here...
           minimap: { enabled: false }
         });
 
-        // Store initial content
-        this.originalContent = this.content || this.initialContent;
+        // Ensure we have valid content to display
+        this.originalContent = this.content || this.initialContent || '';
         this.markdownContent = this.originalContent;
 
-        // Set up models for original and modified content
+        // Set up models for original and modified content with explicit content
         this.originalModel = monaco.editor.createModel(this.originalContent, 'markdown');
         this.modifiedModel = monaco.editor.createModel(this.markdownContent, 'markdown');
         
+        // Set the models for the diff editor
         this.diffEditor.setModel({
           original: this.originalModel,
           modified: this.modifiedModel
@@ -182,8 +183,11 @@ Start writing your documentation here...
   async loadMarkdownFile(filename: string) {
     try {
       const response = await this.apiService.getMarkdown(filename);
-      this.originalContent = response.content;
-      this.markdownContent = response.content;
+      const content = response.content || '';
+      
+      // Update the content variables
+      this.originalContent = content;
+      this.markdownContent = content;
       this.originalTimestamp = new Date();
       
       if (this.diffEditor && !this.isViewMode) {
@@ -196,19 +200,24 @@ Start writing your documentation here...
             this.modifiedModel.dispose();
           }
           
-          // Create new models
-          this.originalModel = monaco.editor.createModel(response.content, 'markdown');
-          this.modifiedModel = monaco.editor.createModel(response.content, 'markdown');
+          // Create new models with explicit content
+          this.originalModel = monaco.editor.createModel(content, 'markdown');
+          this.modifiedModel = monaco.editor.createModel(content, 'markdown');
           
+          // Update the diff editor models
           this.diffEditor.setModel({
             original: this.originalModel,
             modified: this.modifiedModel
           });
+
+          // Force a layout update
+          this.diffEditor.layout();
         } catch (error) {
           console.warn('Error updating editor models:', error);
         }
       }
       
+      // Update the preview
       this.updatePreview();
     } catch (error) {
       console.error('Error loading markdown file:', error);
