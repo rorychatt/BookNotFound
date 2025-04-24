@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
@@ -17,6 +17,7 @@ export class FeedbackWindowComponent {
   @Input() matchingFile: string | null = null;
   @Input() originalQuestion: string = '';
   @Input() answer: string = '';
+  @Output() feedbackSubmitted = new EventEmitter<void>();
 
   feedbackText: string = '';
   suggestedChanges: string = '';
@@ -111,6 +112,9 @@ export class FeedbackWindowComponent {
       this.isPositive = null;
       this.showEditor = false;
       this.hasChanges = false;
+      
+      // Emit event to notify parent component
+      this.feedbackSubmitted.emit();
     } catch (err) {
       this.error = 'Failed to submit feedback. Please try again.';
       console.error('Error:', err);

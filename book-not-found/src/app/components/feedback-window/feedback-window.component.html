@@ -75,10 +75,11 @@
   <!-- Submit Button -->
   <div class="mt-4 flex justify-end">
     <button 
-      class="btn btn-primary" 
-      [disabled]="isPositive === null || (showEditor && !hasChanges)" 
-      (click)="submitFeedback()">
-      {{ isLoading ? 'Submitting...' : (showEditor ? 'Propose Changes' : 'Submit Feedback') }}
+      [disabled]="isLoading || isPositive === null || (!feedbackText && !suggestedChanges)" 
+      (click)="submitFeedback()" 
+      class="submit-button">
+      <span *ngIf="isLoading">Submitting...</span>
+      <span *ngIf="!isLoading">{{ showEditor ? 'Suggest Changes' : 'Submit Feedback' }}</span>
     </button>
   </div>
 

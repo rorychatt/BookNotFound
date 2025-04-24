@@ -9,14 +9,14 @@ import { FeedbackWindowComponent } from '../feedback-window/feedback-window.comp
 @Component({
   selector: 'app-response-window',
   templateUrl: './response-window.component.html',
-  styleUrls: ['./response-window.component.scss'],
+  styleUrls: ['./response-window.component.css'],
   standalone: true,
   imports: [CommonModule, MarkdownModule, FeedbackWindowComponent]
 })
 export class ResponseWindowComponent implements OnInit, OnDestroy {
   @Input() response: ResponseData | null = null;
   private subscription: Subscription | null = null;
-  showFeedback: boolean = false;
+  showFeedback = false;
 
   constructor(
     private responseService: ResponseService,
@@ -58,8 +58,12 @@ export class ResponseWindowComponent implements OnInit, OnDestroy {
     }
   }
 
-  onGiveFeedback() {
+  onGiveFeedback(): void {
     this.showFeedback = true;
+  }
+
+  onFeedbackSubmitted(): void {
+    this.showFeedback = false;
   }
 
   get certaintyClass(): string {

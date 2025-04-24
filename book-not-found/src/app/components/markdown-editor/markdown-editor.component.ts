@@ -185,14 +185,14 @@ Start writing your documentation here...
       const response = await this.apiService.getMarkdown(filename);
       const content = response.content || '';
       
-      // Update the content variables
+      // Reset all content variables to the new file's content
       this.originalContent = content;
       this.markdownContent = content;
       this.originalTimestamp = new Date();
       
       if (this.diffEditor && !this.isViewMode) {
         try {
-          // Dispose of old models first
+          // Always dispose old models when switching files
           if (this.originalModel) {
             this.originalModel.dispose();
           }
@@ -200,24 +200,26 @@ Start writing your documentation here...
             this.modifiedModel.dispose();
           }
           
-          // Create new models with explicit content
+          // Create fresh models with the new content
           this.originalModel = monaco.editor.createModel(content, 'markdown');
           this.modifiedModel = monaco.editor.createModel(content, 'markdown');
           
-          // Update the diff editor models
+          // Set fresh models on the diff editor
           this.diffEditor.setModel({
             original: this.originalModel,
             modified: this.modifiedModel
           });
 
-          // Force a layout update
+          // Force layout and reset view
           this.diffEditor.layout();
+          this.diffEditor.getModifiedEditor().setPosition({ lineNumber: 1, column: 1 });
+          this.diffEditor.getModifiedEditor().revealPosition({ lineNumber: 1, column: 1 });
         } catch (error) {
           console.warn('Error updating editor models:', error);
         }
       }
       
-      // Update the preview
+      // Reset the preview with new content
       this.updatePreview();
     } catch (error) {
       console.error('Error loading markdown file:', error);

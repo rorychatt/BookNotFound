@@ -1,7 +1,0 @@
-<button 
-  [disabled]="isLoading || isPositive === null || (!feedbackText && !suggestedChanges)" 
-  (click)="submitFeedback()" 
-  class="submit-button">
-  <span *ngIf="isLoading">Submitting...</span>
-  <span *ngIf="!isLoading">{{ showEditor ? 'Suggest Changes' : 'Submit Feedback' }}</span>
-</button> 
