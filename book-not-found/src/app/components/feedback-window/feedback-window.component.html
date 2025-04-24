@@ -53,6 +53,7 @@
         <app-markdown-editor
           [(content)]="suggestedChanges"
           [initialContent]="originalContent"
+          [matchingFile]="matchingFile"
           (contentChange)="onContentChange($event)">
         </app-markdown-editor>
         <div class="prose max-w-none mt-4 p-4 bg-base-100 rounded">
@@ -63,11 +64,19 @@
     </div>
   </div>
   
+  <!-- Debug Info -->
+  <div class="text-sm mb-2">
+    <div>isLoading: {{isLoading}}</div>
+    <div>isPositive: {{isPositive}}</div>
+    <div>hasChanges: {{hasChanges}}</div>
+    <div>showEditor: {{showEditor}}</div>
+  </div>
+
   <!-- Submit Button -->
   <div class="mt-4 flex justify-end">
     <button 
       class="btn btn-primary" 
-      [disabled]="isLoading || isPositive === null || (!feedbackText && !suggestedChanges)" 
+      [disabled]="isPositive === null || (showEditor && !hasChanges)" 
       (click)="submitFeedback()">
       {{ isLoading ? 'Submitting...' : (showEditor ? 'Propose Changes' : 'Submit Feedback') }}
     </button>

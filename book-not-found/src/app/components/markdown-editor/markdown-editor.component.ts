@@ -19,6 +19,7 @@ declare const monaco: any;
 export class MarkdownEditorComponent implements OnInit, OnChanges, OnDestroy {
   @Input() initialContent: string = '';
   @Input() content: string = '';
+  @Input() matchingFile: string | null = null;
   @Output() contentChange = new EventEmitter<string>();
   markdownContent: string = '';
   originalContent: string = '';
@@ -70,13 +71,13 @@ export class MarkdownEditorComponent implements OnInit, OnChanges, OnDestroy {
     });
   }
 
-  private generateFilename(question: string): string {
-    // Convert question to kebab case and limit length
-    return question
+  private generateFilename(title: string): string {
+    // Convert title to kebab case and limit length
+    return title
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
-      .substring(0, 50);
+      .substring(0, 50) + '.md';
   }
 
   private initializeNewDocument(keywords: string[], question: string) {
@@ -102,17 +103,21 @@ Start writing your documentation here...
         this.originalContent = newContent;
       }
       
-      this.markdownContent = newContent;
-      
-      if (this.diffEditor && this.modifiedModel) {
-        try {
+      // Only update content if it's different to avoid cursor reset
+      if (this.markdownContent !== newContent) {
+        this.markdownContent = newContent;
+        
+        if (this.diffEditor && this.modifiedModel) {
+          const currentPosition = this.diffEditor.getModifiedEditor().getPosition();
           this.modifiedModel.setValue(newContent);
-        } catch (error) {
-          console.warn('Error updating editor content:', error);
+          if (currentPosition) {
+            this.diffEditor.getModifiedEditor().setPosition(currentPosition);
+            this.diffEditor.getModifiedEditor().revealPositionInCenter(currentPosition);
+          }
         }
+        
+        this.updatePreview();
       }
-      
-      this.updatePreview();
     }
   }
 
@@ -156,9 +161,11 @@ Start writing your documentation here...
           this.ngZone.run(() => {
             try {
               const newContent = this.modifiedModel.getValue();
-              this.markdownContent = newContent;
-              this.contentChange.emit(newContent);
-              this.updatePreview();
+              if (newContent !== this.markdownContent) {
+                this.markdownContent = newContent;
+                this.contentChange.emit(newContent);
+                this.updatePreview();
+              }
             } catch (error) {
               console.warn('Error handling content change:', error);
             }
@@ -209,26 +216,31 @@ Start writing your documentation here...
   }
 
   async saveCurrentFile() {
-    if (!this.currentFile || this.isViewMode) return;
-
-    const modifiedModel = this.diffEditor.getModifiedEditor().getModel();
-    const modifiedContent = modifiedModel.getValue();
+    if (this.isViewMode) return;
 
     try {
-      await this.apiService.saveMarkdown(this.currentFile, modifiedContent);
+      const modifiedContent = this.modifiedModel.getValue();
+      let fileToSave = this.matchingFile;
+      
+      // Only generate a new filename for new documents
+      if (!fileToSave) {
+        fileToSave = this.generateFilename(modifiedContent.split('\n')[0] || 'new-document');
+      }
+
+      await this.apiService.saveMarkdown(fileToSave, modifiedContent);
       console.log('File saved successfully');
+      
       // Update original content after successful save
       this.originalContent = modifiedContent;
-      this.originalTimestamp = new Date();
+      this.markdownContent = modifiedContent;
       
-      // Update the diff editor models
-      const originalModel = monaco.editor.createModel(modifiedContent, 'markdown');
-      this.diffEditor.getModel().original.dispose();
-      this.diffEditor.setModel({
-        original: originalModel,
-        modified: modifiedModel
-      });
+      // Update the models
+      if (this.originalModel) {
+        this.originalModel.setValue(modifiedContent);
+      }
       
+      // Emit the change
+      this.contentChange.emit(modifiedContent);
       this.updatePreview();
     } catch (error) {
       console.error('Failed to save file:', error);

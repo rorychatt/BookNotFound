@@ -6,7 +6,11 @@
     </div>
     @if (!isViewMode) {
       <div class="flex gap-2">
-        <!-- Save Changes button removed -->
+        @if (!matchingFile) {
+          <button class="btn btn-sm btn-success" (click)="saveCurrentFile()">
+            Save Document
+          </button>
+        }
       </div>
     }
   </div>

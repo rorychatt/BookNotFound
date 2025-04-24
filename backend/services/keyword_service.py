@@ -8,9 +8,31 @@ class KeywordService:
         self.llm_service = llm_service
         self.keywords_dir = os.path.join(os.path.dirname(__file__), "..", "keyword_storage")
         os.makedirs(self.keywords_dir, exist_ok=True)
+        self.max_retries = 3
 
     async def extract_keywords(self, text: str) -> List[str]:
-        """Extract keywords from text using LLM."""
+        """Extract keywords from text using LLM with retry logic."""
+        retries = 0
+        while retries < self.max_retries:
+            try:
+                print(f"Attempt {retries + 1} to extract keywords from text: {text[:100]}...")  # Print first 100 chars
+                keywords = await self._attempt_keyword_extraction(text)
+                
+                if keywords:
+                    print(f"Successfully extracted keywords on attempt {retries + 1}: {keywords}")
+                    return keywords
+                
+                print(f"No keywords extracted on attempt {retries + 1}, retrying...")
+                retries += 1
+            except Exception as e:
+                print(f"Error on attempt {retries + 1}: {str(e)}")
+                retries += 1
+                
+        print("Failed to extract keywords after all retries")
+        return []
+
+    async def _attempt_keyword_extraction(self, text: str) -> List[str]:
+        """Single attempt at keyword extraction."""
         prompt = f"""
         Extract keywords from the text below. Return ONLY a JSON object, nothing else.
 
@@ -28,6 +50,7 @@ class KeywordService:
         
         response = await self.llm_service.generate_answer(prompt, "")
         answer = response["answer"].strip()
+        print(f"Raw LLM response: {answer}")
         
         try:
             # Try to find JSON object if there's additional text
@@ -50,7 +73,7 @@ class KeywordService:
                 if cleaned and len(cleaned) > 1:  # Ensure keyword is not empty and has at least 2 chars
                     cleaned_keywords.append(cleaned)
             
-            print(f"Extracted keywords: {cleaned_keywords}")  # Debug log
+            print(f"Cleaned keywords: {cleaned_keywords}")
             return cleaned_keywords[:32]  # Limit to 32 keywords
             
         except json.JSONDecodeError as e:
@@ -96,9 +119,15 @@ class KeywordService:
         min_score_threshold = 0.1  # At least 10% of keywords should match
         min_matches = 1  # At least 1 keyword must match
 
+        print(f"Finding best match for keywords: {query_keywords}")
+        print(f"Available files: {all_files}")
+
         for filename in all_files:
             file_keywords = self.load_keywords(filename)
+            print(f"Keywords for {filename}: {file_keywords}")
+
             if not file_keywords:
+                print(f"No keywords found for {filename}")
                 continue
 
             # Calculate similarity score
@@ -108,9 +137,13 @@ class KeywordService:
             # Score is the percentage of query keywords that match
             score = num_matches / len(query_keywords) if query_keywords else 0
             
+            print(f"File: {filename}, Matching keywords: {matching_keywords}, Score: {score}")
+            
             # Must meet both minimum matches and threshold
             if num_matches >= min_matches and score >= min_score_threshold and score > best_score:
                 best_score = score
                 best_match = filename
+                print(f"New best match: {filename} with score {score}")
 
+        print(f"Final best match: {best_match} with score {best_score if best_match else 0}")
         return best_match 
