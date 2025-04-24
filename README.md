@@ -42,20 +42,7 @@ source venv/bin/activate  # On Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Set up environment variables:
-   - Create `.env` in the backend directory
-   - Create `.env` in the book-not-found directory
-
-Example backend `.env`:
-```
-MONGODB_URI=mongodb://localhost:27017/booknotfound
-JWT_SECRET=your_jwt_secret
-```
-
-Example frontend `.env`:
-```
-API_URL=http://localhost:5000
-```
+4. For any env setup, see documentation within the FE or BE folders
 
 ### Running the Application
 
