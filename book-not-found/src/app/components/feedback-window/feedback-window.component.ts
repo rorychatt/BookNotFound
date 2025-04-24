@@ -24,11 +24,19 @@ export class FeedbackWindowComponent {
   isLoading: boolean = false;
   error: string | null = null;
   showEditor: boolean = false;
+  originalContent: string = '';
 
   constructor(private apiService: ApiService) {}
 
+  onContentChange(content: string) {
+    console.log('Content changed:', content);
+    this.suggestedChanges = content;
+  }
+
   async submitFeedback() {
     if (this.isPositive === null) return;
+    
+    console.log('Submitting feedback with changes:', this.suggestedChanges);
 
     this.isLoading = true;
     this.error = null;
@@ -38,7 +46,8 @@ export class FeedbackWindowComponent {
         file_name: this.matchingFile,
         is_positive: this.isPositive,
         feedback_text: this.feedbackText,
-        suggested_changes: this.showEditor ? this.suggestedChanges : undefined
+        suggested_changes: this.showEditor ? this.suggestedChanges : undefined,
+        original_content: this.originalContent
       });
 
       // Reset form
@@ -58,10 +67,19 @@ export class FeedbackWindowComponent {
     this.isPositive = isPositive;
   }
 
-  toggleEditor() {
+  async toggleEditor() {
     this.showEditor = !this.showEditor;
-    if (this.showEditor) {
-      this.suggestedChanges = this.answer;
+    if (this.showEditor && this.matchingFile) {
+      try {
+        // Load the actual file content
+        const response = await this.apiService.getMarkdown(this.matchingFile);
+        this.originalContent = response.content;
+        this.suggestedChanges = response.content;
+      } catch (err) {
+        console.error('Error loading file content:', err);
+        this.error = 'Failed to load file content. Please try again.';
+        this.showEditor = false;
+      }
     }
   }
 }

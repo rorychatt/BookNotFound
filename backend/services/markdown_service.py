@@ -80,13 +80,23 @@ class MarkdownService:
         # Remove .md extension if present
         filename = filename[:-3] if filename.endswith('.md') else filename
         
+        print(f"Saving markdown file: {filename}")
         filepath = os.path.join(self.storage_dir, f"{filename}.md")
         with open(filepath, 'w', encoding='utf-8') as f:
             f.write(content)
+        print(f"Markdown file saved successfully")
 
         # Generate and save keywords
-        keywords = await self.keyword_service.extract_keywords(content)
-        self.keyword_service.save_keywords(filename, keywords)
+        print(f"Extracting keywords for {filename}")
+        try:
+            keywords = await self.keyword_service.extract_keywords(content)
+            print(f"Extracted keywords: {keywords}")
+            self.keyword_service.save_keywords(filename, keywords)
+            print(f"Keywords saved successfully")
+        except Exception as e:
+            print(f"Error extracting keywords: {str(e)}")
+            # Save empty keywords rather than failing
+            self.keyword_service.save_keywords(filename, [])
 
     def get_keywords(self, filename: str) -> List[str]:
         """Get keywords for a markdown file."""

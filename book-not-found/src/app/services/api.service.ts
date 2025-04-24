@@ -23,6 +23,7 @@ export interface FeedbackRequest {
   is_positive: boolean;
   feedback_text: string;
   suggested_changes?: string;
+  original_content?: string;
 }
 
 export interface MarkdownContent {

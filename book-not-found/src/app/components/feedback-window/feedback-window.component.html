@@ -40,36 +40,41 @@
 
     <div *ngIf="showEditor" class="space-y-4">
       <!-- Original Content -->
-      <div class="border rounded-lg p-4 bg-base-200">
+      <div *ngIf="showEditor" class="border rounded-lg p-4 bg-base-200">
         <h4 class="text-sm font-semibold mb-2">Original Content</h4>
         <div class="prose max-w-none">
-          <markdown [data]="answer"></markdown>
+          <markdown [data]="originalContent"></markdown>
         </div>
       </div>
 
       <!-- Editable Content -->
-      <div class="border rounded-lg p-4 bg-base-200">
+      <div *ngIf="showEditor" class="border rounded-lg p-4 bg-base-200 mt-4">
         <h4 class="text-sm font-semibold mb-2">Proposed Changes</h4>
         <app-markdown-editor
           [(content)]="suggestedChanges"
-          [initialContent]="answer">
+          [initialContent]="originalContent"
+          (contentChange)="onContentChange($event)">
         </app-markdown-editor>
+        <div class="prose max-w-none mt-4 p-4 bg-base-100 rounded">
+          <h5 class="text-sm font-semibold mb-2">Preview</h5>
+          <markdown [data]="suggestedChanges"></markdown>
+        </div>
       </div>
     </div>
   </div>
   
   <!-- Submit Button -->
-  <div class="flex justify-end">
+  <div class="mt-4 flex justify-end">
     <button 
-      class="btn btn-primary"
-      (click)="submitFeedback()"
-      [disabled]="isPositive === null || isLoading">
-      {{ isLoading ? 'Submitting...' : 'Submit Feedback' }}
+      class="btn btn-primary" 
+      [disabled]="isLoading || isPositive === null || (!feedbackText && !suggestedChanges)" 
+      (click)="submitFeedback()">
+      {{ isLoading ? 'Submitting...' : (showEditor ? 'Propose Changes' : 'Submit Feedback') }}
     </button>
   </div>
 
   <!-- Error Message -->
-  <div *ngIf="error" class="alert alert-error">
+  <div *ngIf="error" class="alert alert-error mt-4">
     {{ error }}
   </div>
 </div>
